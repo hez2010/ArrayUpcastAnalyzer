@@ -19,6 +19,8 @@ For example:
 dotnet run -c Release -- path/to/project/bin/net6.0/Release/*.dll
 ```
 
+You may also pass `--verbose` to see the entire entity around the usage.
+
 ## Sample usage
 ```
 dotnet run -c Release -- System.Private.CoreLib.dll
@@ -50,5 +52,4 @@ Possible array upcast System.Object[] <- System.Reflection.MethodInfo[] at Resou
 
 Possible array upcast System.Type[] <- System.RuntimeType[] at RuntimePropertyInfo.ToString: Type[] parameterTypes = arguments;
 
-End of analysis.
-```
+End of a

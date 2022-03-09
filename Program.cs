@@ -6,7 +6,7 @@ using ICSharpCode.Decompiler.IL;
 using ICSharpCode.Decompiler.Metadata;
 using ICSharpCode.Decompiler.Semantics;
 
-static void Traverse(AstNode node)
+static void Traverse(AstNode node, Options options)
 {
     if (node is VariableDeclarationStatement
         {
@@ -24,10 +24,12 @@ static void Traverse(AstNode node)
         {
             var value = stloc.Value;
             var stack = new Stack<EntityDeclaration>();
+            AstNode? entity = null;
             var cur = node.Parent;
             while (cur is not null)
             {
                 if (cur is EntityDeclaration ed) stack.Push(ed);
+                if (entity is null) entity = cur;
                 cur = cur.Parent;
             }
             var sigSb = new StringBuilder();
@@ -45,6 +47,10 @@ static void Traverse(AstNode node)
                         if (target.Type.ReflectionName != variable.Type.ReflectionName)
                         {
                             Console.WriteLine($"Possible array upcast {target.Type.ReflectionName} <- {variable.Type.ReflectionName} at {sigSb}: {node}");
+                            if (options.Verbose)
+                            {
+                                Console.WriteLine(entity);
+                            }
                         }
                         break;
                     }
@@ -57,6 +63,10 @@ static void Traverse(AstNode node)
                         if (target.Type.ReflectionName != $"{elemType.ReflectionName}{sb}")
                         {
                             Console.WriteLine($"Possible array upcast {target.Type.ReflectionName} <- {elemType.ReflectionName}{sb} at {sigSb}: {node}");
+                            if (options.Verbose)
+                            {
+                                Console.WriteLine(entity);
+                            }
                         }
                         break;
                     }
@@ -71,6 +81,10 @@ static void Traverse(AstNode node)
                         if (target.Type.ReflectionName != $"{elemType.ReflectionName}{sb}")
                         {
                             Console.WriteLine($"Possible array upcast {target.Type.ReflectionName} <- {elemType.ReflectionName}{sb} at {sigSb}: {node}");
+                            if (options.Verbose)
+                            {
+                                Console.WriteLine(entity);
+                            }
                         }
                         break;
                     }
@@ -80,15 +94,41 @@ static void Traverse(AstNode node)
 
     foreach (var child in node.Children)
     {
-        Traverse(child);
+        Traverse(child, options);
     }
 }
 
-foreach (var arg in args)
+static Options ParseOptions(string[] args)
 {
-    var dir = Path.GetDirectoryName(arg);
+    var options = new Options(default, new());
+    ParseOptionsInternal(args, options);
+    return options;
+
+    static void ParseOptionsInternal(string[] args, Options options)
+    {
+        if (args is [var head, .. var tail])
+        {
+            switch (head.ToLowerInvariant())
+            {
+                case "--verbose":
+                    options.Verbose = true;
+                    break;
+                default:
+                    options.Assembiles.Add(head);
+                    break;
+            }
+            ParseOptionsInternal(tail, options);
+        }
+    }
+}
+
+var options = ParseOptions(args);
+
+foreach (var assembly in options.Assembiles)
+{
+    var dir = Path.GetDirectoryName(assembly);
     if (dir is null) continue;
-    foreach (var file in Directory.GetFiles(dir, Path.GetFileName(arg)))
+    foreach (var file in Directory.GetFiles(dir, Path.GetFileName(assembly)))
     {
         var fileName = Path.GetFileName(file);
         Console.WriteLine($"Analysis for {fileName}:");
@@ -96,7 +136,7 @@ foreach (var arg in args)
         {
             var decompiler = new CSharpDecompiler(file, new DecompilerSettings(LanguageVersion.CSharp1));
             var syntaxTree = decompiler.DecompileWholeModuleAsSingleFile();
-            Traverse(syntaxTree);
+            Traverse(syntaxTree, options);
         }
         catch (PEFileNotSupportedException)
         {
@@ -112,4 +152,11 @@ foreach (var arg in args)
             Console.WriteLine();
         }
     }
+}
+
+class Options
+{
+    public Options(bool verbose, List<string> assembiles) => (Verbose, Assembiles) = (verbose, assembiles);
+    public bool Verbose { get; set; }
+    public List<string> Assembiles { get; set; }
 }

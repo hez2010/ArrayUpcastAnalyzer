@@ -171,9 +171,6 @@ static Options ParseOptions(string[] args)
 }
 
 var options = ParseOptions(args);
-string[] Hello() => null;
-object[] test = Hello();
-Console.WriteLine(test);
 foreach (var assembly in options.Assembiles)
 {
     var dir = Path.GetDirectoryName(assembly);
@@ -209,11 +206,4 @@ class Options
     public Options(bool verbose, List<string> assembiles) => (Verbose, Assembiles) = (verbose, assembiles);
     public bool Verbose { get; set; }
     public List<string> Assembiles { get; set; }
-    public string[] Test { get; set; }
-}
-
-struct OOp
-{
-    public string[] Test { get; set; }
-
 }

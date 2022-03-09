@@ -1,5 +1,5 @@
 # Array Upcast Analyzer
-An analyzer to detect array upcasts in your assembly.
+An analyzer helps you to detect covariant array usage in your code
 
 ## Build
 ```

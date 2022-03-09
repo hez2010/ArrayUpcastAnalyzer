@@ -20,7 +20,7 @@ static void Traverse(AstNode node, Options options)
     {
         var target = type.Annotations.SelectMany(i => i is TypeResolveResult ti ? new[] { ti } : Array.Empty<TypeResolveResult>()).OrderByDescending(i => i.Type.FullName.Length).First();
         var stloc = variables.First().Annotation<StLoc>();
-        if (stloc is { Value: LdLoc or NewArr or Block { Kind: BlockKind.ArrayInitializer, Children.Count: > 0 } })
+        if (stloc is { Value: LdLoc or LdObj or Call or CallVirt or CallInstruction or NewArr or Block { Kind: BlockKind.ArrayInitializer, Children.Count: > 0 } })
         {
             var value = stloc.Value;
             var stack = new Stack<EntityDeclaration>();
@@ -47,6 +47,54 @@ static void Traverse(AstNode node, Options options)
                         if (target.Type.ReflectionName != variable.Type.ReflectionName)
                         {
                             Console.WriteLine($"Possible array upcast {target.Type.ReflectionName} <- {variable.Type.ReflectionName} at {sigSb}: {node}");
+                            if (options.Verbose)
+                            {
+                                Console.WriteLine(entity);
+                            }
+                        }
+                        break;
+                    }
+                case LdObj { Type: var loadType }:
+                    {
+                        if (target.Type.ReflectionName != loadType.ReflectionName)
+                        {
+                            Console.WriteLine($"Possible array upcast {target.Type.ReflectionName} <- {loadType.ReflectionName} at {sigSb}: {node}");
+                            if (options.Verbose)
+                            {
+                                Console.WriteLine(entity);
+                            }
+                        }
+                        break;
+                    }
+                case Call { Method.ReturnType: var retType }:
+                    {
+                        if (target.Type.ReflectionName != retType.ReflectionName)
+                        {
+                            Console.WriteLine($"Possible array upcast {target.Type.ReflectionName} <- {retType.ReflectionName} at {sigSb}: {node}");
+                            if (options.Verbose)
+                            {
+                                Console.WriteLine(entity);
+                            }
+                        }
+                        break;
+                    }
+                case CallVirt { Method.ReturnType: var retType }:
+                    {
+                        if (target.Type.ReflectionName != retType.ReflectionName)
+                        {
+                            Console.WriteLine($"Possible array upcast {target.Type.ReflectionName} <- {retType.ReflectionName} at {sigSb}: {node}");
+                            if (options.Verbose)
+                            {
+                                Console.WriteLine(entity);
+                            }
+                        }
+                        break;
+                    }
+                case CallInstruction { Method.ReturnType: var retType }:
+                    {
+                        if (target.Type.ReflectionName != retType.ReflectionName)
+                        {
+                            Console.WriteLine($"Possible array upcast {target.Type.ReflectionName} <- {retType.ReflectionName} at {sigSb}: {node}");
                             if (options.Verbose)
                             {
                                 Console.WriteLine(entity);
@@ -123,7 +171,9 @@ static Options ParseOptions(string[] args)
 }
 
 var options = ParseOptions(args);
-
+string[] Hello() => null;
+object[] test = Hello();
+Console.WriteLine(test);
 foreach (var assembly in options.Assembiles)
 {
     var dir = Path.GetDirectoryName(assembly);
@@ -159,4 +209,11 @@ class Options
     public Options(bool verbose, List<string> assembiles) => (Verbose, Assembiles) = (verbose, assembiles);
     public bool Verbose { get; set; }
     public List<string> Assembiles { get; set; }
+    public string[] Test { get; set; }
+}
+
+struct OOp
+{
+    public string[] Test { get; set; }
+
 }

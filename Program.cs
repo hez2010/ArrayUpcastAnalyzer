@@ -100,7 +100,7 @@ foreach (var arg in args)
         }
         catch (PEFileNotSupportedException)
         {
-            Console.WriteLine("Skip.");
+            Console.WriteLine("Skip due to not appliable: no managed code.");
         }
         catch (Exception ex)
         {

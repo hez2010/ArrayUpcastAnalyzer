@@ -102,6 +102,10 @@ foreach (var arg in args)
         {
             Console.WriteLine("Skip.");
         }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Skip due to exception: {ex.Message}");
+        }
         finally
         {
             Console.WriteLine($"End of analysis.");
